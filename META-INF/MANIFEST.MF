@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Class-Path: jfreechart-1.0.19.jar jcommon-1.0.23.jar pdfbox-app-1.8.8
+Main-Class: org.m3studio.signalanalyzer.GUI.SignalAnalyzer
+

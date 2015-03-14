@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="SignalAnalyzer">
+    <output-path>$PROJECT_DIR$/out/artifacts/SignalAnalyzer</output-path>
+    <root id="archive" name="SignalAnalyzer.jar">
+      <element id="module-output" name="SignalAnalyzer" />
+      <element id="library" level="project" name="jfreechart-1.0.19" />
+      <element id="library" level="project" name="jcommon-1.0.23" />
+      <element id="library" level="project" name="pdfbox-app-1.8.8" />
+      <element id="directory" name="META-INF">
+        <element id="file-copy" path="$PROJECT_DIR$/META-INF/MANIFEST.MF" />
+      </element>
+    </root>
+  </artifact>
+</component>

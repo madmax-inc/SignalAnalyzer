@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact name="SignalAnalyzer:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/SignalAnalyzer_jar</output-path>
+    <root id="root">
+      <element id="archive" name="SignalAnalyzer.jar">
+        <element id="module-output" name="SignalAnalyzer" />
+      </element>
+      <element id="library" level="project" name="jlatexmath-1.0.3" />
+      <element id="library" level="project" name="jfreechart-1.0.19" />
+      <element id="library" level="project" name="jcommon-1.0.23" />
+      <element id="library" level="project" name="pdfbox-app-1.8.8" />
+    </root>
+  </artifact>
+</component>
