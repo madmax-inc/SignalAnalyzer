@@ -12,4 +12,21 @@ public class MathHelper {
         long tmp = Math.round(value);
         return (double) tmp / factor;
     }
+
+    public static double adaptiveRound(double value) {
+        int integerPart = (int) value;
+
+        if (integerPart != 0)
+            return round(value, 0);
+
+        double fraction = value - integerPart;
+        int places = 0;
+
+        while (((int) fraction) == 0) {
+            fraction *= 10;
+            places++;
+        }
+
+        return round(value, places);
+    }
 }

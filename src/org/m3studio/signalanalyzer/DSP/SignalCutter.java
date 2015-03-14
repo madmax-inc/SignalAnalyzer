@@ -29,6 +29,14 @@ public class SignalCutter {
         cutCounter = 0;
     }
 
+    public int getCuttersCount() {
+        return signalsParameters.size();
+    }
+
+    public SynthesizableSignal getCurrentCutter() {
+        return signalsParameters.get(cutCounter);
+    }
+
     public Signal getSourceSignal() {
         return sourceSignal;
     }

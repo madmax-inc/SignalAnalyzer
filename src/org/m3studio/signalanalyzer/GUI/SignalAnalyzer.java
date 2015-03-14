@@ -8,6 +8,7 @@ import org.m3studio.signalanalyzer.Report.ReportBuilder;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
@@ -38,7 +39,7 @@ public class SignalAnalyzer extends JFrame implements HeterodinSelectorView.Hete
     private static final ResourceBundle resourceBundle = ResourceBundle.getBundle("res/GUI", Locale.getDefault());
 
 
-    public SignalAnalyzer(boolean autoAnalyzeEnabled) {
+    public SignalAnalyzer() {
         super("Signal Analyzer");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
@@ -174,7 +175,18 @@ public class SignalAnalyzer extends JFrame implements HeterodinSelectorView.Hete
         autoAnalyzerItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                AutoSignalAnalyzer analyzer = new AutoSignalAnalyzer(sourceSignal, 0.05, 0.05, 1, 1);
+                JTextField minHarmonicLevel = new JTextField("0.1");
+
+                final Component components[] = new Component[] {
+                        new JLabel(resourceBundle.getString("minHarmonicLevel")),
+                        minHarmonicLevel
+                };
+
+
+                if (JOptionPane.showConfirmDialog(SignalAnalyzer.this, components, resourceBundle.getString("menuDoAnalyze"), JOptionPane.PLAIN_MESSAGE) != JOptionPane.OK_OPTION)
+                    return;
+
+                AutoSignalAnalyzer analyzer = new AutoSignalAnalyzer(sourceSignal, Double.parseDouble(minHarmonicLevel.getText()) / 2, 0.05, 1);
 
                 ArrayList<SynthesizableSignal> signals = analyzer.detectHarmonics();
 
@@ -218,7 +230,12 @@ public class SignalAnalyzer extends JFrame implements HeterodinSelectorView.Hete
         licenseAgreementItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                if (Desktop.isDesktopSupported())
+                    try {
+                        Desktop.getDesktop().open(new File("COPYING"));
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
             }
         });
         helpMenu.add(licenseAgreementItem);
@@ -324,12 +341,7 @@ public class SignalAnalyzer extends JFrame implements HeterodinSelectorView.Hete
     }
 
     public static void main(String args[]) {
-        boolean autoAnalyze = false;
-        if (args.length == 1)
-            if (args[0].equals("autoAnalyzerEnabled"))
-                autoAnalyze = true;
-
-        SignalAnalyzer app = new SignalAnalyzer(autoAnalyze);
+        SignalAnalyzer app = new SignalAnalyzer();
 
         app.setVisible(true);
     }

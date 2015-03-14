@@ -1,30 +1,23 @@
 package org.m3studio.signalanalyzer.Report;
 
-import org.apache.pdfbox.encoding.WinAnsiEncoding;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.font.PDTrueTypeFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import org.m3studio.signalanalyzer.DSP.Complex;
-import org.m3studio.signalanalyzer.DSP.Signal;
-import org.m3studio.signalanalyzer.DSP.SignalCutter;
-import org.m3studio.signalanalyzer.DSP.Spectrum;
-import org.m3studio.signalanalyzer.GUI.SignalGeneratorView;
+import org.m3studio.signalanalyzer.DSP.*;
 import org.scilab.forge.jlatexmath.TeXConstants;
 import org.scilab.forge.jlatexmath.TeXFormula;
 import org.scilab.forge.jlatexmath.TeXIcon;
 
 import javax.swing.*;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 /**
  * Created by madmax on 07.03.15.
@@ -51,9 +44,10 @@ public class ReportBuilder {
     private static final float marginTopBottom = 10.0f * scale;
     private static final float interval = 3.0f * scale;
 
-    private static final String latexSigmaString =
-            "\\sigma =\\sqrt{\\frac{\\sum _{i=1}^n \\left(x_i-\\bar{x}\\right){}^2}{n}}";
+    private static final PDFont headerFont = PDType1Font.TIMES_BOLD;
+    private static final PDFont textFont = PDType1Font.TIMES_ROMAN;
 
+    private static final ResourceBundle resourceBundle = ResourceBundle.getBundle("res/GUI", Locale.getDefault());
     private static final ResourceBundle reportBundle = ResourceBundle.getBundle("res/report", Locale.getDefault());
 
     public ReportBuilder(String signalName, SignalCutter cutter) {
@@ -70,102 +64,102 @@ public class ReportBuilder {
 
         PDFPrintHelper helper = new PDFPrintHelper(document, new PDRectangle(pageWidth, pageHeight), marginTopBottom, marginSides, interval);
 
-        PDFont arial = null;
-        try {
-            arial = PDTrueTypeFont.loadTTF(document, "res/Arial.ttf");
-            arial.setFontEncoding(new WinAnsiEncoding());
-        } catch (IOException e) {
-            throw new PDFPrintException("Exception occured while loading font!", e);
-        }
-
-        final PDFont headerFont = arial;
-        final PDFont textFont = arial;
-
-        /*helper.setColontitleFont(textFont);
+        helper.setColontitleFont(textFont);
         helper.setColontitleFontsize(colontitleFontsize);
-        helper.setColontitle("Created by Signal Analyzer");
-        helper.setPrintColontitle(true);*/
+        helper.setColontitle(reportBundle.getString("reportColontitle"));
+        helper.setPrintColontitle(true);
 
         helper.printString(headerFont, headerFontSize, reportBundle.getString("reportStringHeader"), PDFPrintHelper.Alignment.CENTER);
         helper.printString(headerFont, headerFontSize, signalName, PDFPrintHelper.Alignment.CENTER);
 
-        /*helper.lineBreaks(textFont, textFontSize, 2);
+        helper.lineBreaks(textFont, textFontSize, 2);
+
+        cutter.reset();
 
         helper.printString(headerFont, headerFontSize, reportBundle.getString("signalString"), PDFPrintHelper.Alignment.CENTER);
-        helper.drawImage(renderSignal(sourceSignal), PDFPrintHelper.Alignment.CENTER);
+        helper.drawImage(renderSignal(cutter.getCurrentSignal()), PDFPrintHelper.Alignment.CENTER);
 
-        Signal currentSignal = new Signal(sourceSignal);
-        Signal heterodin = new Signal(currentSignal.getLength());
-        Signal heterodinedSignal = new Signal(currentSignal);
+        SynthesizableComplexExponent heterodinParameter = new SynthesizableComplexExponent();
+        heterodinParameter.setProperty("frequency", 0.0);
+        Signal heterodin = new Signal(cutter.getCurrentSignal().getLength());
+        Signal heterodinedSignal = new Signal(cutter.getCurrentSignal());
         Spectrum spectrum = new Spectrum(heterodinedSignal);
 
         helper.printString(headerFont, headerFontSize, reportBundle.getString("spectrumString"), PDFPrintHelper.Alignment.CENTER);
         helper.drawImage(renderSpectrum(spectrum), PDFPrintHelper.Alignment.CENTER);
 
-        for (SignalGeneratorView cut : cuts) {
-            int harmonicIndex = (int) Math.ceil(cut.getFrequency());
-            double heterodinFrequency = harmonicIndex - cut.getFrequency();
+        for (int i = 0; i < cutter.getCuttersCount(); i++) {
+            SynthesizableSignal cut = cutter.getCurrentCutter();
+
+            int harmonicIndex = (int) Math.ceil((Double) cut.getProperty("frequency"));
+            double heterodinFrequency = harmonicIndex - (Double) cut.getProperty("frequency");
 
             int harmonicMin = Math.max(0, harmonicIndex - harmonicsWindow);
             int harmonicMax = Math.min(spectrum.getLength(), harmonicIndex + harmonicsWindow);
 
 
-            helper.printString(textFont, textFontSize, setTheHeterodinString + " " + String.valueOf(heterodinFrequency));
+            helper.printString(textFont, textFontSize, reportBundle.getString("setTheHeterodinString") + " " + String.valueOf(heterodinFrequency));
 
-            heterodin.heterodinate(heterodinFrequency);
-            heterodinedSignal.set(currentSignal).multiply(heterodin);
+            heterodinParameter.setProperty("frequency", heterodinFrequency);
+            heterodinParameter.synthesizeIn(heterodin);
+            heterodinedSignal.set(cutter.getCurrentSignal()).multiply(heterodin);
             spectrum.recalc();
 
             helper.drawImage(renderSpectrumPart(spectrum, harmonicMin, harmonicMax), PDFPrintHelper.Alignment.CENTER);
 
-            helper.printString(textFont, textFontSize, reportBundle.getString("evidentString + ": " + String.valueOf(harmonicIndex));
+            helper.printString(textFont, textFontSize, reportBundle.getString("evidentString") + " " + reportBundle.getString("isString") + " " + String.valueOf(harmonicIndex));
 
-            helper.printString(textFont"), textFontSize, foundFrequencyString + ":");
-            helper.printString(textFont, textFontSize, "Amplitude is " + String.valueOf(cut.getAmplitude()));
-            helper.printString(textFont, textFontSize, "Starting phase is " + String.valueOf(cut.getPhase()));
-            helper.printString(textFont, textFontSize, reportBundle.getString(""Frequency is " + cut.getFrequency());
+            Set<String> propertiesNames = cut.getProperties();
 
-            helper.lineBreak(textFont"), textFontSize);
+            for (String key : propertiesNames) {
+                helper.printString(textFont, textFontSize, reportBundle.getString(key + "Property") + " " + reportBundle.getString("isString") + " " + cut.getProperty(key).toString());
+            }
 
-            helper.printString(textFont, textFontSize, reportBundle.getString("cutItString);
+            helper.lineBreak(textFont, textFontSize);
 
-            currentSignal.minus(cut.getSignal());
+            helper.printString(textFont, textFontSize, reportBundle.getString("cutItString"));
 
-            helper.drawImage(renderSignal(currentSignal)"), PDFPrintHelper.Alignment.CENTER);
+            cutter.cutNext();
+
+            helper.drawImage(renderSignal(cutter.getCurrentSignal()), PDFPrintHelper.Alignment.CENTER);
 
             helper.lineBreak(textFont, textFontSize);
         }
 
-        heterodinedSignal.set(currentSignal);
+        heterodinedSignal.set(cutter.getCurrentSignal());
         spectrum.recalc();
 
         helper.drawImage(renderSpectrum(spectrum), PDFPrintHelper.Alignment.CENTER);
 
-        helper.printString(textFont, textFontSize, reportBundle.getString("noiseString);
-        helper.printString(textFont"), textFontSize, calcDeviationString);
+        helper.printString(textFont, textFontSize, reportBundle.getString("noiseString"));
+        helper.printString(textFont, textFontSize, reportBundle.getString("calcDeviationString"));
 
-        helper.drawImage(renderLatexFormula(latexSigmaString), PDFPrintHelper.Alignment.CENTER);
+        helper.drawImage(renderLatexFormula(reportBundle.getString("latexSigmaString")), PDFPrintHelper.Alignment.CENTER);
 
-        helper.printString(textFont, textFontSize, standardDeviationString + " is " + String.valueOf(currentSignal.standardDeviation()));
+        helper.printString(textFont, textFontSize, reportBundle.getString("standardDeviationString") + " " + reportBundle.getString("isString") + " " + String.valueOf(cutter.getCurrentSignal().standardDeviation()));
 
-        String tableData[][] = new String[cuts.size() + 1][];
+        String tableData[][] = new String[cutter.getCuttersCount() + 1][];
 
         tableData[0] = new String[] {
-                "Harmonic",
-                "Amplitude",
-                "Phase"
+                reportBundle.getString("frequencyProperty"),
+                reportBundle.getString("amplitudeProperty"),
+                reportBundle.getString("phaseProperty")
         };
 
-        for (int i = 0; i < cuts.size(); i++) {
+        cutter.reset();
+        for (int i = 0; i < cutter.getCuttersCount(); i++) {
+            SynthesizableSignal cut = cutter.getCurrentCutter();
+
             tableData[i + 1] = new String[] {
-                String.valueOf(cuts.get(i).getFrequency()),
-                String.valueOf(cuts.get(i).getAmplitude()),
-                String.valueOf(cuts.get(i).getPhase()),
+                String.valueOf(cut.getProperty("frequency")),
+                String.valueOf(cut.getProperty("amplitude")),
+                String.valueOf(cut.getProperty("phase"))
             };
+
+            cutter.cutNext();
         }
 
         helper.drawTable(textFont, textFontSize, tableSpacing, tableData, PDFPrintHelper.Alignment.CENTER);
-        */
 
         helper.close();
 
@@ -190,9 +184,9 @@ public class ReportBuilder {
         dataset.addSeries(imaginaryPart);
 
         JFreeChart chart = ChartFactory.createXYLineChart(
-                "Сигнал",
+                resourceBundle.getString("signal"),
                 "t",
-                "Сигнал",
+                resourceBundle.getString("signal"),
                 dataset
         );
 
@@ -202,7 +196,7 @@ public class ReportBuilder {
     private BufferedImage renderSpectrumPart(Spectrum spectrum, int minHarmonic, int maxHarmonic) {
         XYSeriesCollection dataset = new XYSeriesCollection();
 
-        XYSeries amplitudePart = new XYSeries("Амплитудный спектр");
+        XYSeries amplitudePart = new XYSeries(resourceBundle.getString("powerSpectrum"));
 
         for (int i = minHarmonic; i < maxHarmonic; i++) {
             amplitudePart.add(i, spectrum.getAbs(i));
@@ -211,10 +205,10 @@ public class ReportBuilder {
         dataset.addSeries(amplitudePart);
 
         JFreeChart chart = ChartFactory.createXYBarChart(
-                "Спектр",
-                "Частота",
+                resourceBundle.getString("spectrum"),
+                resourceBundle.getString("frequency"),
                 false,
-                "Энергия",
+                resourceBundle.getString("power"),
                 dataset
         );
 

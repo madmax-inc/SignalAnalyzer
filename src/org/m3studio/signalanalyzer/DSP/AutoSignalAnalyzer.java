@@ -9,14 +9,12 @@ public class AutoSignalAnalyzer {
     private Signal source;
     private double min;
     private double heterodinAccuracy;
-    private int cutAccuracy;
     private int windowSize;
 
-    public AutoSignalAnalyzer(Signal source, double min, double heterodinAccuracy, int cutAccuracy, int windowSize) {
+    public AutoSignalAnalyzer(Signal source, double min, double heterodinAccuracy, int windowSize) {
         this.source = source;
         this.min = min;
         this.heterodinAccuracy = heterodinAccuracy;
-        this.cutAccuracy = cutAccuracy;
         this.windowSize = windowSize;
     }
 
@@ -35,7 +33,7 @@ public class AutoSignalAnalyzer {
             double heterodinSelected = 0.0;
             double signalToNoise = spectrum.getRealAmplitude(harmonic) / spectrum.getAverageAmplitudeIn(harmonic, windowSize);
 
-            for (double heterodinFrequency = 0.0; heterodinFrequency < 1.0; heterodinFrequency += heterodinAccuracy) {
+            for (double heterodinFrequency = -0.5; heterodinFrequency < (0.5 + heterodinAccuracy); heterodinFrequency += heterodinAccuracy) {
                 heterodinParameter.setProperty("frequency", heterodinFrequency);
                 heterodinParameter.synthesizeIn(heterodin);
                 heterodinedSignal.set(cutter.getCurrentSignal()).multiply(heterodin);
@@ -56,9 +54,9 @@ public class AutoSignalAnalyzer {
             heterodinedSignal.set(cutter.getCurrentSignal()).multiply(heterodin);
             spectrum.recalc();
 
-            parameter.setProperty("amplitude", MathHelper.round(spectrum.getRealAmplitude(harmonic), cutAccuracy));
+            parameter.setProperty("amplitude", MathHelper.adaptiveRound(spectrum.getRealAmplitude(harmonic)));
             parameter.setProperty("frequency", harmonic - heterodinSelected);
-            parameter.setProperty("phase", MathHelper.round(spectrum.getPhase(harmonic), cutAccuracy));
+            parameter.setProperty("phase", MathHelper.round(spectrum.getPhase(harmonic), 1));
 
             cutter.addSignal(parameter);
 
