@@ -196,7 +196,7 @@ public class ReportBuilder {
     private BufferedImage renderSpectrumPart(Spectrum spectrum, int minHarmonic, int maxHarmonic) {
         XYSeriesCollection dataset = new XYSeriesCollection();
 
-        XYSeries amplitudePart = new XYSeries(resourceBundle.getString("powerSpectrum"));
+        XYSeries amplitudePart = new XYSeries(resourceBundle.getString("amplitudeSpectrum"));
 
         for (int i = minHarmonic; i < maxHarmonic; i++) {
             amplitudePart.add(i, spectrum.getAbs(i));
@@ -208,7 +208,7 @@ public class ReportBuilder {
                 resourceBundle.getString("spectrum"),
                 resourceBundle.getString("frequency"),
                 false,
-                resourceBundle.getString("power"),
+                resourceBundle.getString("amplitude"),
                 dataset
         );
 

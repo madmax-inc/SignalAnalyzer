@@ -30,6 +30,9 @@ public class AutoSignalAnalyzer {
 
         int harmonic;
         while ((harmonic = spectrum.detectStrongPeak(min)) != -1) {
+            if (cutter.getCuttersCount() > 10)
+                throw new RuntimeException("Unable to analyze signal! Try another parameters.");
+
             double heterodinSelected = 0.0;
             double signalToNoise = spectrum.getRealAmplitude(harmonic) / spectrum.getAverageAmplitudeIn(harmonic, windowSize);
 

@@ -14,10 +14,10 @@ public class MathHelper {
     }
 
     public static double adaptiveRound(double value) {
-        int integerPart = (int) value;
+        int integerPart = (int) Math.round(value);
 
         if (integerPart != 0)
-            return round(value, 0);
+            return Math.round(value);
 
         double fraction = value - integerPart;
         int places = 0;

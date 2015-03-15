@@ -175,7 +175,7 @@ public class SignalAnalyzer extends JFrame implements HeterodinSelectorView.Hete
         autoAnalyzerItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JTextField minHarmonicLevel = new JTextField("0.1");
+                JTextField minHarmonicLevel = new JTextField(String.valueOf(MathHelper.adaptiveRound(spectrum.estimatedNoise(500, 2, 4))));
 
                 final Component components[] = new Component[] {
                         new JLabel(resourceBundle.getString("minHarmonicLevel")),
@@ -188,29 +188,34 @@ public class SignalAnalyzer extends JFrame implements HeterodinSelectorView.Hete
 
                 AutoSignalAnalyzer analyzer = new AutoSignalAnalyzer(sourceSignal, Double.parseDouble(minHarmonicLevel.getText()) / 2, 0.05, 1);
 
-                ArrayList<SynthesizableSignal> signals = analyzer.detectHarmonics();
+                try {
+                    ArrayList<SynthesizableSignal> signals = analyzer.detectHarmonics();
 
-                cutter.removeAll();
-                cutter.reset();
-                cutterPanel.removeAll();
 
-                for (SynthesizableSignal s : signals) {
-                    cutter.addSignal(s);
-                    CosineGeneratorView generatorView = new CosineGeneratorView();
-                    generatorView.setSignalParameters(s);
-                    generatorView.setCallback(SignalAnalyzer.this);
-                    cutterPanel.add(generatorView);
+                    cutter.removeAll();
+                    cutter.reset();
+                    cutterPanel.removeAll();
+
+                    for (SynthesizableSignal s : signals) {
+                        cutter.addSignal(s);
+                        CosineGeneratorView generatorView = new CosineGeneratorView();
+                        generatorView.setSignalParameters(s);
+                        generatorView.setCallback(SignalAnalyzer.this);
+                        cutterPanel.add(generatorView);
+                    }
+
+                    cutter.recutAll();
+
+                    signalView.updateSignalView();
+                    signalView.repaint();
+
+                    onHeterodinChanged();
+
+                    validate();
+                    repaint();
+                } catch (RuntimeException e1) {
+                    JOptionPane.showMessageDialog(SignalAnalyzer.this, "Exception occured while analyzing signal! Consider using another parameters!");
                 }
-
-                cutter.recutAll();
-
-                signalView.updateSignalView();
-                signalView.repaint();
-
-                onHeterodinChanged();
-
-                validate();
-                repaint();
             }
         });
         autoAnalyzeMenu.add(autoAnalyzerItem);
@@ -225,20 +230,6 @@ public class SignalAnalyzer extends JFrame implements HeterodinSelectorView.Hete
             }
         });
         helpMenu.add(aboutItem);
-
-        JMenuItem licenseAgreementItem = new JMenuItem(resourceBundle.getString("menuLicense"));
-        licenseAgreementItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (Desktop.isDesktopSupported())
-                    try {
-                        Desktop.getDesktop().open(new File("COPYING"));
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
-                    }
-            }
-        });
-        helpMenu.add(licenseAgreementItem);
 
 
         menu.add(fileMenu);

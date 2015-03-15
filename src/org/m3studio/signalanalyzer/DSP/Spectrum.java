@@ -118,4 +118,48 @@ public class Spectrum {
 
         return (avgAmplitude / (max - min - 1));
     }
+
+    private int getDistributionValue(double a) {
+        int distributionVal = 0;
+
+        for (int i = 0; i < spectrum.length; i++) {
+            if (getRealAmplitude(i) <= a)
+                distributionVal++;
+        }
+
+        return distributionVal;
+    }
+
+    private int[] getDistributionDensity(int confidence) {
+        int density[] = new int[confidence - 1];
+        double amplitudeStep = getRealAmplitude(detectStrongPeak(0.0)) / confidence;
+
+        for (int i = 0; i < confidence - 1; i++) {
+            density[i] = getDistributionValue((i + 1) * amplitudeStep) - getDistributionValue(i * amplitudeStep);
+        }
+
+        return density;
+    }
+
+    public double estimatedNoise(int distributionConfidence, int peakTolerance, int maxDistance) {
+        int density[] = getDistributionDensity(distributionConfidence);
+
+        int peak = 0;
+
+        for (int i = 0; i < density.length; i++)
+            if (density[i] > density[peak])
+                peak = i;
+
+        int startingPeak = peak;
+        int currentTolerance = 0;
+
+        while (currentTolerance < peakTolerance && (peak - startingPeak) < maxDistance) {
+            if (density[peak + 1] > density[peak])
+                currentTolerance++;
+
+            peak++;
+        }
+
+        return peak * getRealAmplitude(detectStrongPeak(0.0)) / distributionConfidence;
+    }
 }

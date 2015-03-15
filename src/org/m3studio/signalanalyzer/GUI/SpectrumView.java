@@ -31,7 +31,7 @@ public class SpectrumView extends ChartPanel {
                 title,
                 resourceBundle.getString("frequency"),
                 false,
-                resourceBundle.getString("power"),
+                resourceBundle.getString("amplitude"),
                 dataset
         );
 
@@ -51,7 +51,7 @@ public class SpectrumView extends ChartPanel {
     public void updateSpectrumView() {
         dataset.removeAllSeries();
 
-        XYSeries amplitudePart = new XYSeries(resourceBundle.getString("powerSpectrum"));
+        XYSeries amplitudePart = new XYSeries(resourceBundle.getString("amplitudeSpectrum"));
 
         for (int i = 0; i < spectrum.getLength(); i++) {
             amplitudePart.add(i, spectrum.getAbs(i));
