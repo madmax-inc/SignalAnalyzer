@@ -11,7 +11,9 @@ import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -175,7 +177,7 @@ public class SignalAnalyzer extends JFrame implements HeterodinSelectorView.Hete
         autoAnalyzerItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JTextField minHarmonicLevel = new JTextField(String.valueOf(MathHelper.adaptiveRound(spectrum.estimatedNoise(500, 2, 4))));
+                JTextField minHarmonicLevel = new JTextField(String.valueOf(MathHelper.adaptiveRound(spectrum.estimatedNoise(1000, 10, 20))));
 
                 final Component components[] = new Component[] {
                         new JLabel(resourceBundle.getString("minHarmonicLevel")),

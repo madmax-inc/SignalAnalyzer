@@ -119,23 +119,26 @@ public class Spectrum {
         return (avgAmplitude / (max - min - 1));
     }
 
-    private int getDistributionValue(double a) {
-        int distributionVal = 0;
+    private int[] getDistributionFunction(int confidence) {
+        double amplitudeStep = getRealAmplitude(detectStrongPeak(0.0)) / confidence;
+        int distributionFunction[] = new int[confidence];
 
         for (int i = 0; i < spectrum.length; i++) {
-            if (getRealAmplitude(i) <= a)
-                distributionVal++;
+            int distributionPosition = Math.min(((int) Math.ceil(getRealAmplitude(i) / amplitudeStep)), confidence);
+
+            for (int j = 1; j < distributionPosition; j++)
+                distributionFunction[j]++;
         }
 
-        return distributionVal;
+        return distributionFunction;
     }
 
     private int[] getDistributionDensity(int confidence) {
+        int function[] = getDistributionFunction(confidence);
         int density[] = new int[confidence - 1];
-        double amplitudeStep = getRealAmplitude(detectStrongPeak(0.0)) / confidence;
 
         for (int i = 0; i < confidence - 1; i++) {
-            density[i] = getDistributionValue((i + 1) * amplitudeStep) - getDistributionValue(i * amplitudeStep);
+            density[i] = function[i + 1] - function[i];
         }
 
         return density;

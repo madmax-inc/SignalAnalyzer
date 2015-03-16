@@ -1,7 +1,5 @@
 package org.m3studio.signalanalyzer.DSP;
 
-import java.util.regex.Pattern;
-
 /**
  * Created by madmax on 06.03.15.
  */

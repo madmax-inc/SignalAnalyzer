@@ -8,7 +8,6 @@ import org.jfree.data.xy.XYSeriesCollection;
 import org.m3studio.signalanalyzer.DSP.Complex;
 import org.m3studio.signalanalyzer.DSP.Signal;
 
-import javax.swing.*;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
