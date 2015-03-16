@@ -185,7 +185,7 @@ public class SignalAnalyzer extends JFrame implements HeterodinSelectorView.Hete
                 };
 
 
-                if (JOptionPane.showConfirmDialog(SignalAnalyzer.this, components, resourceBundle.getString("menuDoAnalyze"), JOptionPane.PLAIN_MESSAGE) != JOptionPane.OK_OPTION)
+                if (JOptionPane.showConfirmDialog(SignalAnalyzer.this, components, resourceBundle.getString("menuDoAnalyze"), JOptionPane.OK_CANCEL_OPTION) != JOptionPane.OK_OPTION)
                     return;
 
                 AutoSignalAnalyzer analyzer = new AutoSignalAnalyzer(sourceSignal, Double.parseDouble(minHarmonicLevel.getText()) / 2, 0.05, 1);
